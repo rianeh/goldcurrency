@@ -53,56 +53,40 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
+<script setup lang="ts">
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import PriceCard from './components/PriceCard.vue'
 import { useCurrencyStore } from './stores/currency'
 
-export default defineComponent({
-  name: 'App',
-  components: { PriceCard },
-  data() {
-    return {
-      autoRefresh: false as boolean,
-      lastUpdated: null as string | null,
-      store: null as any,
-    }
-  },
-  computed: {
-    formattedGold(): string | number {
-      return this.store?.gold?.price ?? '—'
-    },
-    formattedUSD(): string | number {
-      return this.store?.usd?.price ?? '—'
-    },
-    loading(): boolean {
-      return !!this.store?.loading
-    },
-    error(): string | null {
-      return this.store?.error ?? null
-    },
-  },
-  methods: {
-    toggleAuto() {
-      this.autoRefresh = !this.autoRefresh
-      if (!this.store) return
-      if (this.autoRefresh) this.store.startPolling()
-      else this.store.stopPolling()
-    },
-    async manualRefresh() {
-      if (!this.store) return
-      await this.store.fetchPrices()
-      this.lastUpdated = new Date().toLocaleTimeString()
-    },
-  },
-  mounted() {
-    this.store = useCurrencyStore()
-    this.store.fetchPrices()
-    if (this.autoRefresh) this.store.startPolling()
-  },
-  beforeUnmount() {
-    this.store?.stopPolling()
-  },
+const store = useCurrencyStore()
+
+const autoRefresh = ref(false)
+const lastUpdated = ref<string | null>(null)
+
+const formattedGold = computed(() =>
+  store.gold?.price ?? '—'
+)
+
+const formattedUSD = computed(() =>
+  store.usd?.price ?? '—'
+)
+
+const toggleAuto = () => {
+  autoRefresh.value = !autoRefresh.value
+  autoRefresh.value ? store.startPolling() : store.stopPolling()
+}
+
+const manualRefresh = async () => {
+  await store.fetchPrices()
+  lastUpdated.value = new Date().toLocaleTimeString()
+}
+
+onMounted(() => {
+  store.fetchPrices()
+})
+
+onBeforeUnmount(() => {
+  store.stopPolling()
 })
 </script>
 

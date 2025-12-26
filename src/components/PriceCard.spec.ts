@@ -3,7 +3,6 @@ import { mount } from '@vue/test-utils'
 import PriceCard from './PriceCard.vue'
 
 describe('PriceCard.vue', () => {
-  // تست Props
   it('باید title را نمایش دهد', () => {
     const wrapper = mount(PriceCard, {
       props: {
